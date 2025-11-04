@@ -8,7 +8,11 @@ All analyses were conducted in Python and R using publicly available tools for p
 
 Code_archive_mss/
 ├── recent_adaptation_Malombe_manuscript_code_pub.ipynb # Main manuscript analysis pipeline
+
 ├── simulation_output_pub.ipynb # Explorations of coalescent simulation output
+
 ├── pyDeseq_pub.ipynb # Differential expression analysis using PyDESeq2
+
 ├── Snakemake/ # Workflow automations referenced in notebooks.
+
 
