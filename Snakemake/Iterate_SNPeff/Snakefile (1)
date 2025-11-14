@@ -1,0 +1,28 @@
+shell.prefix("source /data/antwerpen/grp/asvardal/share/hscon5_setup.sh; ")
+
+ana_dir = "/scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex"
+
+repeats = range(100)
+CHROMOSOMES = [f'chr{i}' for i in range(1,24) if i!= 21]
+
+rule all:
+    input:
+        expand(f"{ana_dir}/_data/Genomic_features/eff-per-pos_AF-matched_SNPs_10_iterations_{{repeat}}.txt", repeat = repeats)
+#         expand(f"{ana_dir}/_data/Genomic_features/Num_overlap_simulated_iterations_{{repeat}}.txt", repeat = repeats)
+
+rule get_expected_annotations:
+    input:
+        allsnp_fn = f"{ana_dir}/_data/Genomic_features/allsnps_MAF-per-pos.txt",
+        outlierspersnp_fn = f"{ana_dir}/_data/Genomic_features/outliersnps_MAF-per-pos_2.txt",
+        anno_vcf_fn_gz = "/scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/_data/VariantCalling/fAstCal1.2/15april/all_sites.tif1.sft1.pass.snps.biallelic.whatshap.shapeit4.annotate.anc_samp.snpEff_anno_fAstcal1.2.105.wg.vcf.gz",
+         snps_regions_fn = f"{ana_dir}/_data/Genomic_features/candidate_regions_chr-pos_4185.txt"
+#        snps_regions_fn = f"{ana_dir}/_data/Genomic_features/candidate_regions_chr-pos_84.txt"
+    resources:
+        mem_mb=8704,
+        walltime=24
+    output:
+        f"{ana_dir}/_data/Genomic_features/eff-per-pos_AF-matched_SNPs_10_iterations_{{repeat}}.txt"
+        #f"{ana_dir}/_data/Genomic_features/eff-per-pos_AF-matched_SNPs_10_iterations_{{repeat}}_extreme.txt"
+    script:
+        "get_AF-matched_snpEff-ann_permutations_alex.py"
+        
