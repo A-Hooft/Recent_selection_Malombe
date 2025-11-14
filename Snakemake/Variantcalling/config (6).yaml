@@ -1,0 +1,72 @@
+#config for Variant calling mloto-virginalis callset
+
+ana_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex
+alignment_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/alignments
+sample_mt: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/metadata/VirginalisMloto_FIE_mt_2023-06-09.tsv
+
+
+
+callset_id: 'FIE_mloto'
+
+ref:
+    species: Astatotilapia calliptera   # Lake Malawi endemic generalist
+    name: fAstCal1.2
+    base_fn: /scratch/antwerpen/grp/asvardal/projects/kearad/data/reference/fAstCal1.2/GCA_900246225.3_fAstCal1.2_genomic_chromnames_mt
+    ext_fa: .fa
+    ext_fai: .fa.fai
+
+
+individual_filter_sets:
+    tif1:
+        allele_balance: 0.01
+        low_gq: 0
+        max_dp_to_missing_pval: 1.0e-2
+        min_dp_to_missing_pval: 0
+
+
+site_filter_sets:
+    sft1:
+        #filter sites between two filtered sites if the filtered sites are closer than this value
+        merge_dist: 10
+        filters:
+            LowMQ:
+                #expression: "MQ < 50.0"
+                #description: "Root mean square MQ < 30"
+                tag: 'MQ'
+                threshold: 50.0
+                threshold_type: 'absolute'
+                operator: '<'
+            ExcessMQ0:
+                #expression: "MQ0F > 0.15"
+                #description: "Fraction of MQ0 reads > 0.10"
+                tag: 'MQ0F'
+                threshold: 0.1
+                threshold_type: 'absolute'
+                operator: '>'
+            StrandBias:
+                #expression: "MQSB < 1e-10"
+                tag: 'MQSB'
+                threshold: 1.0e-3
+                threshold_type: 'absolute'
+                operator: '<'
+                description: "Highly significant Mann-Whitney U test of Mapping Quality vs Strand Bias."
+            ExcessHet:
+                tag: 'ExcHetOrig'
+                threshold: 0.2
+                threshold_type: 'absolute'
+                operator: '<'
+            AlleleBalance:
+                tag: 'AB_Het'
+                threshold: 20
+                threshold_type: 'absolute'
+                operator: '>'
+            DepthDeviation:
+                tag: 'DD'
+                threshold: 2
+                threshold_type: 'absolute'
+                operator: '>'
+            ExcessMissing:
+                tag: 'MF'
+                threshold: 0.2
+                threshold_type: 'absolute'
+                operator: '>'
