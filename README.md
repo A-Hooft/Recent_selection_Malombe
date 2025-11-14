@@ -9,7 +9,7 @@ Code_archive_mss/
 ├── Notebooks/ 
 │   ├── recent_adaptation_Malombe_manuscript_code_pub.ipynb # Main manuscript analysis pipeline
 │   ├── simulation_output_pub.ipynb # Explorations of coalescent simulation output
-│   └── pyDeseq_pub.ipynb # Workflow automations referenced in notebooks.
+│   └── pyDeseq_pub.ipynb # DESEQ analyses
 ├── Snakemake/ # Workflow automations referenced in notebooks.
 └── README.md
 ```
