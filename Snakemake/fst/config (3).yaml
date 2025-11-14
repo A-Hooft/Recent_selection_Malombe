@@ -1,0 +1,6 @@
+#base analysis directory 
+ana_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex
+#directory 
+data_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/_data/VariantCalling/fAstCal1.2/15april
+
+sample_mt: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/metadata/Copdichromis_VirChy_plotting_16.tsv
