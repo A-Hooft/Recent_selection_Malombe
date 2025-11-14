@@ -1,0 +1,100 @@
+shell.prefix("source /data/antwerpen/grp/asvardal/share/hscon5_setup.sh; ")
+# import itertools
+import pandas as pd
+# import os, gzip
+
+jn = os.path.join
+
+#run with:
+#snakemake -p --profile slurm-simple3  2>&1 --rerun-incomplete --keep-going --restart-times 2 | tee run.log
+
+configfile: "config.yaml"
+
+wildcard_constraints:
+    i="\d+",
+    contig="\d+",
+    chrom="\w+",
+    ref_fn=".*.fa",
+    #sequence_id="\w+",
+    ind_filter_id="[^.]+",
+    site_filter_id="[^.]+",
+    family_id="\w+",
+    filter_id="[^.]+",#"^/(?!raw|all_sites)([^.]+)$"
+    vcf_type="(pass.snps.biallelic|pass.indels.biallelic|variants|filtered_variants|NoSFilter.snps.biallelic)",
+    vcf_extension="(vcf|vcf.gz|bcf)",
+    chunk="\d+",
+            #"[^.]+",
+    dmode="(0|1|2)"
+
+
+ana_dir = config['ana_dir']
+data_dir = config['data_dir']
+SFS_dir = config['SFS_dir']
+
+sample_mt = pd.read_csv(config["sample_mt"], dtype=str, sep='\t', index_col=0)#.set_index("sequence_id", drop=False)
+
+
+ind_filter_id ='tif1'
+site_filter_id = 'sft1'
+filter_id = 'bla'
+vcf_type = 'pass.snps.biallelic'
+# vcf_type = 'NoSFilter.snps.biallelic'
+#vcf_type = 'filtered_variants'
+# vcf_extension = 'vcf.gz'
+vcf_extension = 'vcf.gz'
+# vcf_extension = 'bcf'
+
+
+CHROMOSOMES = [f'chr{i}' for i in range(1,24) if i!= 21]
+subset_id = 'virginalis_Nkhudzi_bay_stringent_clade'
+
+DMODE = [1] #also 0 and 2 possible, see manual
+
+
+def get_sample_names(subset_id): #extract sample id's as list based on subset_id defined above. either from file of one line python code from sample_mt
+    if subset_id == 'all_samples':
+        sample_names = [id for id in sample_mt.index.values]
+    elif subset_id == 'virginalis':
+        sample_names = [id for id in sample_mt[sample_mt['species']=='virginalis'].index.values]
+    elif subset_id == 'virginalis_Malombe':
+        sample_names = [id for id in sample_mt[(sample_mt['species']=='virginalis')&(sample_mt['location'] == "Lake_Malombe")].index.values]
+    elif subset_id == 'virginalis_Nkhudzi_bay_stringent_clade':
+        with open(jn((SFS_dir),"virginalis_Nkhudzi_bay_stringent_clade.txt"), "r") as f:
+            sample_names = f.read().strip().split("\n")
+    else:
+        sample_names = ["no_samples"]
+    return(sample_names)
+
+
+rule all:
+    input:
+        expand(f"{ana_dir}/output/hscan/H_out.{subset_id}.{vcf_type}.whatshap.shapeit4.annotate.{{chrom}}_d-{{dmode}}.tsv", chrom = CHROMOSOMES, dmode = DMODE),
+        
+
+rule input_file_Hscan:
+    input:
+        bcf = f"{data_dir}/all_sites.{ind_filter_id}.{site_filter_id}.{vcf_type}.whatshap.shapeit4.annotate.{{chrom}}.{vcf_extension}",
+    output:
+        tsv = f"{ana_dir}/output/hscan/H_input.{subset_id}.{vcf_type}.whatshap.shapeit4.annotate.{{chrom}}.tsv",
+    params:
+        sample_list = ','.join(get_sample_names(subset_id))
+    resources:
+        mem_gb=16,
+        walltime=1
+    shell:
+        """
+        bcftools view -Oz {input.bcf} -s {params.sample_list} | bcftools query -f '%POS[,%TGT]\n' | awk '{{gsub(/\./,"N")}}1' |  awk '{{gsub(/\|/,",")}}1' > {output.tsv}
+        """
+
+rule Hscan:
+    input:
+        tsv = f"{ana_dir}/output/hscan/H_input.{subset_id}.{vcf_type}.whatshap.shapeit4.annotate.{{chrom}}.tsv",
+    output:
+        tsv = f"{ana_dir}/output/hscan/H_out.{subset_id}.{vcf_type}.whatshap.shapeit4.annotate.{{chrom}}_d-1.tsv",
+    resources:
+        mem_gb=30,
+        walltime=72
+    shell:
+        """ 
+        /data/antwerpen/grp/asvardal/software/H-scan/H-scan -i {input.tsv} -d 1 > {output.tsv}
+        """
