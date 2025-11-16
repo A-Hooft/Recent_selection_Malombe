@@ -1,0 +1,388 @@
+shell.prefix("source /data/antwerpen/grp/asvardal/share/hscon5_setup.sh; ")
+import os, gzip
+import pandas as pd
+import numpy as np
+import subprocess
+from pyfasta import Fasta
+from numpy import genfromtxt
+import math
+
+jn = os.path.join
+
+configfile: "config.yaml"
+
+callset_id = config['callset']['id']
+#ana_dir = config['ana_dir']
+vcf_dir = config['vcf_dir']
+output_dir = config['output_dir']
+VM_output_dir = config['VM_output_dir']
+ana_dir = config['ana_dir']
+anc = Fasta(config['anc_seq'])
+GWAS_vcf_dir = config['GWAS_vcf_dir']
+VM_vcf_dir = config['VM_vcf_dir']
+inv_vcf_dir = config['inv_vcf_dir']
+genome_stats_output = config['genome_stats_output']
+
+sample_mt = pd.read_csv(config["sample_mt"], dtype=str, sep='\t', index_col=0)#.set_index("sequence_id", drop=False)
+# sample_mt.drop(sample_mt[sample_mt["exclude"].notnull()].index.values, inplace = True)
+sample_mt.drop_duplicates(inplace=True)
+
+########################################################
+#
+#
+#
+########################################################
+
+
+
+VM_dsuite_populations = ["Chilumba_mloto_C",
+                        "Lake_Malombe_mloto_A",
+                        "Makanjila_mloto_C",
+                        "Mbenji_Islands_mloto_C",
+                        "Monkey_Bay_Chenga_trawler_mloto_B",
+                        "Msaka_admixed",
+                        "Msaka_mloto_C",
+                        "Namiasi_Palm_Beach_mloto_A",
+                        "Namiasi_Palm_Beach_mloto_B",
+                        "Nankhwali_trawler_mloto_C",
+                        "Nkhata_Bay_mloto_B",
+                        "Nkhata_Bay_virginalis",
+                        "Nkhotakota_mloto_A",
+                        "Nkhudzi_Bay_mloto_A",
+                        "Senga_Bay_mloto_B"]
+
+
+Inv_populations = ['Alticorpus_geoffreyi:Cape_Maclear',
+ 'Alticorpus_peterdaviesi:Cape_Maclear',
+ 'Astatotilapia_calliptera:Lake_Kingiri',
+ 'Astatotilapia_calliptera:Lake_Malombe',
+ 'Aulonocara_blue-orange:Chilumba',
+ 'Aulonocara_malembo-orange:Southwest_arm',
+ 'Aulonocara_minutus:Monkey_Bay',
+ 'Aulonocara_saulosi:Chiofu',
+ 'Aulonocara_stuartgranti:Usisya',
+ 'Chilotilapia_rhoadesii:Southeast_arm',
+ 'Chilotilapia_rhoadesii:Southwest_arm',
+ 'Copadichromis_chrysonotus:Lake_Malombe',
+ 'Copadichromis_mloto:Lake_Malombe',
+ 'Copadichromis_mloto:Makanjila',
+ 'Copadichromis_mloto:Southeast_arm',
+ 'Copadichromis_mloto:Southwest_arm',
+ 'Copadichromis_virginalis:Nkhata_Bay',
+ 'Cynotilapia_zebroides:Cape_Maclear',
+ 'Cynotilapia_zebroides:Chiofu',
+ 'Diplotaxodon_bigeye-black-dorsal:Chilumba',
+ 'Diplotaxodon_limnothrissa:Southwest_arm',
+ 'Diplotaxodon_macrops:Cape_Maclear',
+ 'Fossorochromis_rostratus:Chiofu',
+ 'Fossorochromis_rostratus:Lake_Malombe',
+ 'Fossorochromis_rostratus:Southeast_arm',
+ 'Labeotropheus_fuelleborni:Chilumba',
+ 'Labeotropheus_trewavasae:Chilumba',
+ 'Lethrinops_gossei:Cape_Maclear',
+ 'Lethrinops_gossei:Monkey_Bay',
+ 'Lethrinops_lethrinus:Southeast_arm',
+ 'Maylandia_callainos:Chilumba',
+ 'Maylandia_emmiltos:Chilumba',
+ 'Maylandia_fainzilberi:Chilumba',
+ 'Maylandia_ngarae:Chilumba',
+ 'Maylandia_pearly:Chilumba',
+ 'Maylandia_zebra:Cape_Maclear',
+ 'Maylandia_zebra:Chiofu',
+ 'Maylandia_zebra:Nkhata_Bay',
+ 'Melanochromis_auratus:Senga_Bay',
+ 'Mylochromis_subocularis:Southeast_arm',
+ 'Otopharynx_argyrosoma:Lake_Malombe',
+ 'Otopharynx_argyrosoma:Southeast_arm',
+ 'Petrotilapia_genalutea:Chiofu',
+ 'Petrotilapia_genalutea-northern:Chilumba',
+ 'Petrotilapia_microgalana:Nkhata_Bay',
+ 'Placidochromis_longimanus:Chia_Lagoon',
+ 'Protomelas_ornatus:Chiofu',
+ 'Rhamphochromis_ferox:Makanjila',
+ 'Rhamphochromis_greyback:Nkhata_Bay',
+ 'Sciaenochromis_benthicola:Monkey_Bay',
+ 'Trematocranus_placodon:Chiofu',
+ 'Trematocranus_placodon:Southeast_arm',
+ 'Trematocranus_placodon:Southwest_arm',
+ 'Tropheops_band:Nkhata_Bay',
+ 'Tropheops_chilumba:Chilumba',
+ 'Tropheops_chiofu-yellow:Chiofu',
+ 'Tropheops_gracilior:Nkhata_Bay',
+ 'Tropheops_orange-head:Chilumba',
+ 'Tropheops_rust:Nkhata_Bay',
+ 'Tropheops_yellow-gular:Chiofu']
+
+
+SUBSET_IDS = Inv_populations
+
+ind_filter_id ='tif1'
+site_filter_id = 'sft1'
+filter_id = 'bla'
+vcf_type = 'pass.snps.biallelic'
+vcf_extension = 'vcf.gz'
+
+def get_sample_names(subset_id):
+    elif subset_id == 'all_samples':
+        sample_names = [id for id in sample_mt.index.values]
+    elif subset_id == 'mloto_A':
+        sample_names = [id for id in sample_mt[sample_mt['clade']=='mloto_A'].index.values]
+    elif subset_id == 'mloto_B':
+        sample_names = [id for id in sample_mt[sample_mt['clade']=='mloto_B'].index.values]
+    elif subset_id == 'mloto_C':
+        sample_names = [id for id in sample_mt[sample_mt['clade']=='mloto_C'].index.values]
+    elif subset_id == 'virginalis':
+        sample_names = [id for id in sample_mt[sample_mt['clade']=='virginalis'].index.values]
+    elif subset_id == 'admixed':
+        sample_names = [id for id in sample_mt[sample_mt['clade']=='admixed'].index.values]
+    elif subset_id == 'Lake_Malombe_mloto_A':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Lake_Malombe_mloto_A'].index.values]
+    elif subset_id == 'Monkey_Bay_Chenga_trawler_mloto_B':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Monkey_Bay_Chenga_trawler_mloto_B'].index.values]
+    elif subset_id == 'Msaka_mloto_C':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Msaka_mloto_C'].index.values]
+    elif subset_id == 'Namiasi_Palm_Beach_mloto_B':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Namiasi_Palm_Beach_mloto_B'].index.values]
+    elif subset_id == 'Nkhata_Bay_virginalis':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Nkhata_Bay_virginalis'].index.values]
+    elif subset_id == 'Nkhudzi_Bay_mloto_A':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Nkhudzi_Bay_mloto_A'].index.values]
+    elif subset_id == 'Nkhata_Bay_mloto_B':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Nkhata_Bay_mloto_B'].index.values]
+    elif subset_id == 'Msaka_admixed':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Msaka_admixed'].index.values] 
+    elif subset_id == 'Makanjila_mloto_C':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Makanjila_mloto_C'].index.values] 
+    elif subset_id == 'Chilumba_mloto_C':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Chilumba_mloto_C'].index.values] 
+    elif subset_id == 'Mbenji_Islands_mloto_C':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Mbenji_Islands_mloto_C'].index.values]
+    elif subset_id == 'Namiasi_Palm_Beach_mloto_A':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Namiasi_Palm_Beach_mloto_A'].index.values] 
+    elif subset_id == 'Nankhwali_trawler_mloto_C':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Nankhwali_trawler_mloto_C'].index.values] 
+    elif subset_id == 'Nkhotakota_mloto_A':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Nkhotakota_mloto_A'].index.values] 
+    elif subset_id == 'Senga_Bay_mloto_B':
+        sample_names = [id for id in sample_mt[sample_mt['dsuite_population']=='Senga_Bay_mloto_B'].index.values] 
+    else:
+        raise ValueError("Unknown subset_id: {}".format(subset_id))
+#     with open(f'{out_dir}/{subset_id}_ids.txt','w') as f:
+#         for id in sample_names:
+#             f.write(str(id) +'\t' + '\n')
+    return(sample_names)
+
+def get_sample_names2(subset_id):
+    """
+    use for SFS of inversion_callset
+    Return index values from sample_mt for a given subset_id.
+    - subset_id can be 'all_samples' or 'species_location'
+    - sample_mt must have columns 'species' and 'location'
+    """
+    if subset_id == 'all_samples':
+        return sample_mt.index.tolist()
+    
+    # split subset_id into species and location
+    try:
+        sp, loc = subset_id.split(":", 1)  # only split on first underscore
+    except ValueError:
+        raise ValueError(f"Invalid subset_id format: {subset_id}. Expected 'species_location'.")
+
+    mask = (sample_mt['species'] == sp) & (sample_mt['location'] == loc)
+    return sample_mt[mask].index.tolist()
+
+
+
+chrom_length = pd.read_csv(config['ref']['base_fn'] + config['ref']['ext_fai'],
+                           sep='\t',usecols=[0,1],names=['chrom','len'],index_col=0).squeeze("columns")
+
+max_chrom_length = chrom_length.max()
+
+CHROMOSOMES = [f'chr{i}' for i in range(1,24) if i!= 21]
+
+def get_sfs_data(chromosomes):
+    sfs_files_all = []
+    chrom_list = []
+    for chrom in chromosomes:
+        fn = output_dir + f"/{{subset_id}}.sfs_{{chrom}}.sfs"
+        sfs_files_all.append(fn)
+        chrom_list.append(chrom)
+    return sfs_files_all, chrom_list
+
+rule all:
+    input:
+        expand(f"{genome_stats_output}/{{subset}}.{{chrom}}.Tajima.D", chrom = CHROMOSOMES, subset = SUBSET_IDS)
+
+rule SFS:
+    input:
+#         vcf = f"{vcf_dir}/all_sites.{ind_filter_id}.{site_filter_id}.{vcf_type}.whatshap.shapeit4.annotate.{{chrom}}.{vcf_extension}",
+        #vcf = f"{GWAS_vcf_dir}/GWAS1465.no_if.sf_stringent1.pass.snps.biallelic.{{chrom}}.phased.vcf.gz", #GWAS callset
+#         vcf = f"{VM_vcf_dir}/VirginalisMloto.non_inverted.{{chrom}}.vcf.gz" ## new mloto
+        vcf = f"{inv_vcf_dir}/malawi_cichlids_v3_phase_{{chrom}}.subset.filtered.min_ac_minor.bcf" ## inv callset
+    output:
+        sfs = f"{output_dir}/{{subset_id}}.sfs_{{chrom}}.sfs"
+    resources:
+        mem_mb=12000, #24
+        walltime=12
+    params:
+        #subgroup = lambda wildcards: wildcards.subset_id,
+        #chrom = lambda wildcards: wildcards.chrom
+    run:
+        region_id = [wildcards.chrom]
+        g_size = chrom_length[wildcards.chrom]
+#         sample_names = get_sample_names(wildcards.subset_id)
+        sample_names = get_sample_names2(wildcards.subset_id)
+        n_samples = len(sample_names)
+        n_chromosomes = 2 * n_samples
+        target_samples =  ",".join(sample_names)
+        print(f"here are your samples: {target_samples}")
+        sfs = np.zeros(n_chromosomes + 1)
+        tot_snp = 0
+        command = (f"bcftools view --samples {target_samples} --min-ac 1:alt1 {input.vcf}"
+                 f" | bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%AC\\t%AN\\n' ")
+#         command = (f"bcftools view --regions {bcftool_region} --samples {target_samples} --min-ac 1:alt1 {input.vcf}"
+#                  f" | bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%AC\\t%AN\\n' ")
+        p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        for i,rec in enumerate(p.stdout):
+            tot_snp += 1
+            chrom, pos, ref, alt, ac, an = rec.decode('utf-8').strip().split()
+            if ',' in ac:
+                continue
+            ac = int(ac)
+            an = int(an)
+            aa = anc[chrom][int(pos)-1]
+            if aa == alt:
+                ac = an - ac
+            elif aa != ref:
+                #if the ancestral allele is neither ref nor alt, skip this site
+                continue
+            sfs[ac] += 1
+
+        genome_size = g_size
+        non_variable = genome_size - tot_snp
+        sfs[0] = non_variable
+
+        with open(output.sfs,'w') as f:
+            header = [f"d0_{i}" for i in range(n_chromosomes + 1)]
+            f.write('\t'.join(header) + '\n' )
+            data = [str(i) for i in sfs.astype(int)]
+            f.write('\t'.join(data) + '\n' )
+        
+
+rule stats_sfs:
+    input:
+        sfs_fn = get_sfs_data(CHROMOSOMES)[0]
+    output:
+        stats = f"{output_dir}/{{subset_id}}.sfs_{{chrom}}.stats",
+    run:
+        chrom_names = get_sfs_data(CHROMOSOMES)[1]
+        g_size = chrom_length[wildcards.chrom]
+
+#cleans the stats file
+        with open(output.stats,'w') as f:
+            header = ["chrom","pi","pi_per_site","theta_H","theta_H_per_site","theta_W","theta_W_per_site","Tajima_D","Fay_Wu_H"]
+            f.write('\t'.join(header) + '\n' )
+
+        for fn,chrom in zip(input.sfs_fn,chrom_names):
+            with open(fn) as f:
+                sample_names = get_sample_names2(wildcards.subset_id)
+                n_samples = len(sample_names)
+                n_chromosomes = 2 * n_samples
+                sfs = genfromtxt(fn, dtype=int, delimiter='\t',skip_header = 1)
+                pi = 0
+                a1 = 0
+                a2 = 0
+                theta_W = 0
+                theta_H = 0
+                genome_size = g_size
+                neutral_sfs = np.zeros([n_chromosomes], dtype=int)
+                for k in range(1, n_chromosomes):
+                    pi += k * (n_chromosomes-k) * sfs[k]
+                    a1 += (1/k)
+                    a2 += (1/k**2)
+                    theta_H += k**2 * sfs[k]
+
+                pi = 2*pi/(n_chromosomes*(n_chromosomes-1))
+                theta_H = 2*theta_H/(n_chromosomes*(n_chromosomes-1))
+                s = sum(sfs[1:n_chromosomes])
+                theta_W = s/a1
+                
+                #calculation of normalised Tajima's D from wikipedia
+                e1 = ((n_chromosomes + 1)/(3* (n_chromosomes-1)) - (1/a1)/a1)
+                b2 = (2*(n_chromosomes ** 2 + n_chromosomes +3))/(9 * n_chromosomes * (n_chromosomes - 1))
+                c2 = c2 = b2 - ((n_chromosomes + 2)/(a1 * n_chromosomes)) + (a2/a1 ** 2)
+                e2 = c2/((a1 ** 2) + a2)
+
+                #calculation of normalised Fay and Wu H from zeng et al 2006. 
+                bn1 = a2 + (1/(n_chromosomes+1)**2)
+                x = (((n_chromosomes-2)/6*(n_chromosomes-1))*theta_H)
+                #y = 18*n_chromosomes**2*(3*n_chromosomes + 2)*(a2*n_chromosomes)
+                y = 18*n_chromosomes**2*(3*n_chromosomes + 2)*(bn1)
+                z = (88*(n_chromosomes**3))+(9*(n_chromosomes**2))-(13*n_chromosomes)+6
+                q = (9*n_chromosomes*(n_chromosomes-1)**2)
+                theta_sq = s*(s-1)/(a1**2+a2)
+                
+                
+                var_d = math.sqrt(e1*s + e2*s*(s-1))
+                var_h = math.sqrt(x + (y/z) * theta_sq)
+                
+                #Tajimas_D = (pi - theta_W)/var_d #estimation from vcftools is maybe better. 
+                Fay_Wu_H = (pi - theta_H)/var_h
+                
+                pi_per_site = pi/genome_size
+                theta_H_per_site = theta_H/genome_size
+                theta_W_per_site = theta_W/genome_size
+
+                ###add new statistics here
+                data = [chrom,str(pi),str(pi_per_site),str(theta_H),str(theta_H_per_site),str(theta_W),str(theta_W_per_site),str(Tajimas_D),str(Fay_Wu_H),]
+
+                with open(output.stats,'a') as f:
+                    f.write('\t'.join(data) + '\n' )
+
+#####Tajima's D according to vcftools
+
+
+rule samples_keep_file:
+    output:
+        samples=f"{genome_stats_output}/{{subset}}_ids.txt"
+    params:
+        out_dir= genome_stats_output
+    run:
+        import pandas as pd
+        subset = wildcards.subset  # <-- use wildcards
+        if subset == "all_samples":
+            sample_names = sample_mt.index.tolist()
+        else:
+            try:
+                sp, loc = subset.split(":", 1)
+                print(sp)
+                print(loc)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid subset_id format: {subset}. Expected 'species:location'."
+                )
+            mask = (sample_mt["species"] == sp) & (sample_mt["location"] == loc)
+            sample_names = sample_mt[mask].index.tolist()
+
+        with open(output.samples, "w") as f:
+            for sid in sample_names:
+                f.write(str(sid) + "\t\n")
+          
+        
+rule tajimaD:
+    input:
+        samples=f"{genome_stats_output}/{{subset}}_ids.txt",
+        bcf=f"{inv_vcf_dir}/malawi_cichlids_v3_phase_{{chrom}}.subset.filtered.min_ac_minor.bcf",
+    output:
+        td=f"{genome_stats_output}/{{subset}}.{{chrom}}.Tajima.D"
+    params:
+        out_pre=f"{genome_stats_output}/{{subset}}.{{chrom}}"
+    shell:
+        """
+        vcftools \
+          --bcf {input.bcf} \
+          --keep {input.samples} \
+          --TajimaD 10000 \
+          --out {params.out_pre} 
+        """                    

@@ -1,0 +1,37 @@
+# original-template file: /scratch/antwerpen/grp/asvardal/projects/anabantoid/analyses/BettaGenomics/snakemake/VariantCalling
+# This file should contain everything to configure the workflow on a global scale.
+# In case of sample based data, it should be complemented by a samples.tsv file that contains
+# one row per sample. It can be parsed easily via pandas.
+
+# sample_mt: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/metadata/Copdichromis_VirChy_4.tsv
+sample_mt: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Inversion_finder_Jaysmita/metadata/2024-05-21.inv_genotypes.tsv
+
+
+ana_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/analyses/SFS
+GWAS_vcf_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/variants/fAstCal1.2/GWAS1465/no_if.sf_stringent1/phased
+vcf_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/_data/VariantCalling/fAstCal1.2/15april
+output_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/output/SFS/VirginalisMloto
+genome_stats_output: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/output/genome_stats
+
+VM_output_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/output/genome_stats/WilsonMlotoMan
+VM_vcf_dir: /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/MalombeAdaptation/WilsonMlotoMan
+inv_vcf_dir : /scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Inversion_finder_Jaysmita/vcfs/malawi_cichlids_v3_phase
+
+anc_seq: /scratch/antwerpen/grp/asvardal/projects/cichlid/reference/fAstCal1.2/ancestral_sequence/anc_all_chrs.AstCalCypFro_final.PNsequence.deletionsAsN.fa
+
+
+callset:
+  id: 15april
+
+pop_colors:
+ 'chrysonotus': [0.5019607843137255, 0.6941176470588235, 0.8274509803921568]
+ 'virginalis ': [0.984313725490196, 0.5019607843137255, 0.4470588235294118]
+
+
+ref:
+    species: Astatotilapia calliptera   # Lake Malawi endemic generalist
+    name: fAstCal1.2
+    base_fn: /scratch/antwerpen/grp/asvardal/projects/kearad/data/reference/fAstCal1.2/GCA_900246225.3_fAstCal1.2_genomic_chromnames_mt
+    ext_fa: .fa
+    ext_fai: .fa.fai
+
