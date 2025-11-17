@@ -4,7 +4,7 @@ This repository contains the reproducible code, workflows, and notebooks support
 
 Contents
 ```
-Code_archive_mss/
+Recent_selection_Malombe/
 ├── Notebooks/ 
 │   ├── recent_adaptation_Malombe_manuscript_code_pub.ipynb # Main manuscript analysis pipeline
 │   ├── simulation_output_pub.ipynb # Explorations of coalescent simulation output
