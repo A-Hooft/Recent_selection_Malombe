@@ -1,0 +1,51 @@
+# Genome length in bp
+L: 1000000000
+# Size of the simulated windows. These windows will recombine freely
+window_size: 1000000
+
+# Median
+# Unscaled mutation and recombination rate (per generation)
+RHO: 6.2E-09
+MU: 3.5E-09
+# Times of divergence (in generations)
+T_AB: 3734
+T_ABC: 11944
+# Effective population sizes 
+Ne_A: 102916
+Ne_AB: 204766
+Ne_Anc: 307506
+Ne_B: 101850
+Ne_C: 102740
+
+# #Lower bound mutation rate
+# # Unscaled mutation and recombination rate (per generation)
+# RHO: 6.2E-09 #from recombination map
+# MU: 1.6E-09
+# # Times of divergence (in generations)
+# T_AB: 8169
+# T_ABC: 26126
+# # Effective population sizes
+# Ne_A: 225130
+# Ne_AB: 447927
+# Ne_Anc: 672671
+# Ne_B: 222797
+# Ne_C: 224744
+
+# # upper bound mutation rate
+# # Unscaled mutation and recombination rate (per generation)
+# RHO: 6.2E-09 #from recombination map
+# MU: 4.6E-09
+# # Times of divergence (in generations)
+# T_AB: 2751
+# T_ABC: 9087
+# # Effective population sizes
+# Ne_A: 78306
+# Ne_AB: 155800
+# Ne_Anc: 233971
+# Ne_B: 77494
+# Ne_C: 78171
+
+# Number of individuals sampled from each of the populations
+Num_A: 72
+Num_B: 31
+Num_C: 20

@@ -1,0 +1,50 @@
+rule all:
+    input:
+        expand("output/null_histogram_Mean_MU.csv")  # Change to depend on the final histogram output
+        expand("output/{seed}.H.npy", seed=[i for i in range(401, 501)])  # Adjust the seed range here
+
+# Set wildcard constraints (optional but helps ensure proper matching)
+wildcard_constraints:
+    seed="\\d+"  # Ensure seed is a number
+
+# Define the directory where the script resides
+ana_dir = "/scratch/antwerpen/grp/asvardal/projects/cichlid/analyses/Copadichromis_FIE_Alex/analyses/curro_sim_fishery_pbs"
+
+# Rule to simulate with msprime and produce the output files
+rule sim_PBS_msprime:
+    input:
+        script = f"{ana_dir}/pbs_sim.py",  # Path to the simulation script
+    output:
+        "output/{seed}.pbs.npy",  # The output file pattern (for each seed)
+    params:
+        config = "config.yaml",  # Assuming you have a config file
+    shell:
+        """
+        time python {input.script} {params.config} {wildcards.seed} {output}
+        """
+
+# Rule to simulate with msprime and produce the output files
+rule sim_hscan_msprime:
+    input:
+         script = f"{ana_dir}/hscan_sim.py",  # Path to the simulation script
+     output:
+         "output/{seed}.H.npy",  # The output file pattern (for each seed)
+     params:
+         config = "config.yaml",  # Assuming you have a config file
+     shell:
+         """
+         time python {input.script} {params.config} {wildcards.seed} {output}
+         """
+
+# Rule to calculate the null distribution and produce the histogram
+rule null_dist:
+    input:
+        script="distribution.py",
+        files = expand("output/{seed}.pbs.npy", seed=[i for i in range(501, 601)])
+        #files = expand("output/{seed}.H.npy", seed=[i for i in range(501, 601)])
+    output:
+        "output/null_histogram_Mean_MU.csv",
+    log:
+        "output/null_histogram_Mean_MU.log",
+    shell:
+        "python {input.script} {input.files} > {output} 2> {log}"
