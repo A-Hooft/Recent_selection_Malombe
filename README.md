@@ -1,8 +1,8 @@
-Recent Adaptation in Copadichromis mloto — Analysis Code Archive
+# Recent polygenic adaptation in heavily fished Malawi cichlids - Code Archive
 
 This repository contains the reproducible code, workflows, and notebooks supporting the study on recent adaptation and fisheries-induced evolution in Copadichromis mloto populations from Lake Malombe and Lake Malawi.
 
-Contents
+## Contents
 ```
 Recent_selection_Malombe/
 ├── Notebooks/ 
@@ -19,11 +19,11 @@ Recent_selection_Malombe/
 ├── TopGO/ # Contains Rscript for running topGO analysis
 └── README.md
 ```
-Usage
+## Usage
 
 Publicly available datasets are not stored in this repository, as duplicating external resources is unnecessary and redundant. Versions or accession numbers are provided where relevant. VCF file for snp data for 224 Copadichromis mloto/virginalis indivuals has been made available on Zenodo:10.5281/zenodo.17611130
 
-Contact
+## Contact
 
 For questions regarding the analysis or reproduction of results, please contact alex.hooftvanhuysduynen@uantwerpen.be
 
