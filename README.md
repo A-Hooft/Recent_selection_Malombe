@@ -21,7 +21,7 @@ Recent_selection_Malombe/
 ```
 Usage
 
-Publicly available datasets are not stored in this repository, as duplicating external resources is unnecessary and redundant. Versions or accession numbers are provided where relevant. VCF file for c.mloto snp data has been made available on Zenodo:10.5281/zenodo.17611130
+Publicly available datasets are not stored in this repository, as duplicating external resources is unnecessary and redundant. Versions or accession numbers are provided where relevant. VCF file for snp data for 224 Copadichromis mloto/virginalis indivuals has been made available on Zenodo:10.5281/zenodo.17611130
 
 Contact
 
